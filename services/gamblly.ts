@@ -3,13 +3,37 @@ import { storage } from './storage';
 
 /**
  * Gamblly API Configuration
- * These values can be overwritten in Environment Variables:
- * VITE_GAMBLLY_API_KEY, VITE_GAMBLLY_API_SUFFIX, VITE_GAMBLLY_DEMO_EMAIL
+ * يتم جلب هذه القيم من إعدادات Vercel التي قمت بإضافتها يدوياً.
+ * ملاحظة: تم تعديل الأسماء لتطابق ما أدخلته أنت (GAMBLY بلام واحدة).
  */
-// Fix: Replaced import.meta.env with process.env to resolve 'Property env does not exist on type ImportMeta' errors.
-const API_KEY = (process.env as any)?.VITE_GAMBLLY_API_KEY || 'e1a9a69a700CodeHub9484c058d7b5be';
-const API_SUFFIX = (process.env as any)?.VITE_GAMBLLY_API_SUFFIX || '32b4c5';
-const DEMO_EMAIL = (process.env as any)?.VITE_GAMBLLY_DEMO_EMAIL || 'demo@gmail.com';
+
+// وظيفة مساعدة للحصول على المتغيرات بأمان دون التسبب في توقف الصفحة
+const getEnv = (key: string, defaultValue: string): string => {
+  try {
+    // محاولة الجلب من Vite (إذا كان البناء يتم عبر Vite)
+    // Added type assertion to bypass TypeScript check for unknown property 'env' on 'ImportMeta'
+    const metaEnv = (import.meta as any).env;
+    if (metaEnv && metaEnv[`VITE_${key}`]) {
+      return metaEnv[`VITE_${key}`];
+    }
+    // محاولة الجلب من المتغيرات العامة أو process إذا وُجد
+    if (typeof process !== 'undefined' && process.env && process.env[key]) {
+      return process.env[key] as string;
+    }
+    // محاولة الجلب المباشرة من window في حال حقنها Vercel
+    if (typeof window !== 'undefined' && (window as any).env && (window as any).env[key]) {
+      return (window as any).env[key];
+    }
+  } catch (e) {
+    console.warn(`Environment variable ${key} access failed, using default.`);
+  }
+  return defaultValue;
+};
+
+// استخدام الأسماء التي أدخلتها أنت في Vercel بدقة
+const API_KEY = getEnv('GAMBLY_API_KEY', 'e1a9a69a700CodeHub9484c058d7b5be');
+const API_SUFFIX = getEnv('GAMBLY_API_SUFFIX', '32b4c5');
+const DEMO_EMAIL = getEnv('GAMBLY_EMAIL', 'demo@gmail.com');
 
 export const gambllyApi = {
   getGames: async (userId: string) => {
