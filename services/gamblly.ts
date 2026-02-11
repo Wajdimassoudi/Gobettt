@@ -3,37 +3,34 @@ import { storage } from './storage';
 
 /**
  * Gamblly API Configuration
- * يتم جلب هذه القيم من إعدادات Vercel التي قمت بإضافتها يدوياً.
- * ملاحظة: تم تعديل الأسماء لتطابق ما أدخلته أنت (GAMBLY بلام واحدة).
+ * تم ضبط هذا الكود ليقرأ القيم التي أدخلتها أنت في Vercel بالضبط.
  */
 
-// وظيفة مساعدة للحصول على المتغيرات بأمان دون التسبب في توقف الصفحة
-const getEnv = (key: string, defaultValue: string): string => {
+const getSafeEnv = (key: string, defaultValue: string): string => {
   try {
-    // محاولة الجلب من Vite (إذا كان البناء يتم عبر Vite)
-    // Added type assertion to bypass TypeScript check for unknown property 'env' on 'ImportMeta'
-    const metaEnv = (import.meta as any).env;
-    if (metaEnv && metaEnv[`VITE_${key}`]) {
-      return metaEnv[`VITE_${key}`];
+    // 1. محاولة الجلب من Vite (الأكثر شيوعاً في Vercel)
+    const viteEnv = (import.meta as any).env;
+    if (viteEnv) {
+      if (viteEnv[`VITE_${key}`]) return viteEnv[`VITE_${key}`];
+      if (viteEnv[key]) return viteEnv[key];
     }
-    // محاولة الجلب من المتغيرات العامة أو process إذا وُجد
-    if (typeof process !== 'undefined' && process.env && process.env[key]) {
-      return process.env[key] as string;
-    }
-    // محاولة الجلب المباشرة من window في حال حقنها Vercel
-    if (typeof window !== 'undefined' && (window as any).env && (window as any).env[key]) {
-      return (window as any).env[key];
+
+    // 2. محاولة الجلب من process.env بشكل آمن
+    if (typeof process !== 'undefined' && process.env) {
+      if (process.env[`VITE_${key}`]) return process.env[`VITE_${key}`] as string;
+      if (process.env[key]) return process.env[key] as string;
     }
   } catch (e) {
-    console.warn(`Environment variable ${key} access failed, using default.`);
+    // في حال حدوث خطأ، لا تتوقف الصفحة، بل استخدم القيمة الافتراضية
+    console.warn(`Environment variable ${key} missing, using fallback.`);
   }
   return defaultValue;
 };
 
-// استخدام الأسماء التي أدخلتها أنت في Vercel بدقة
-const API_KEY = getEnv('GAMBLY_API_KEY', 'e1a9a69a700CodeHub9484c058d7b5be');
-const API_SUFFIX = getEnv('GAMBLY_API_SUFFIX', '32b4c5');
-const DEMO_EMAIL = getEnv('GAMBLY_EMAIL', 'demo@gmail.com');
+// الأسماء مطابقة تماماً لما وضعته أنت في Vercel
+const API_KEY = getSafeEnv('GAMBLY_API_KEY', 'e1a9a69a700CodeHub9484c058d7b5be');
+const API_SUFFIX = getSafeEnv('GAMBLY_API_SUFFIX', '32b4c5');
+const DEMO_EMAIL = getSafeEnv('GAMBLY_EMAIL', 'demo@gmail.com');
 
 export const gambllyApi = {
   getGames: async (userId: string) => {
