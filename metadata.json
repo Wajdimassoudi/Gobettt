@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Gobet Betting Platform",
+  "description": "A comprehensive betting management platform with Admin and Player dashboards, virtual TND currency management, and Gamblly API integration.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
